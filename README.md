@@ -1,2 +1,2 @@
-# clean-architecture
-All of projects that help use clean architecture dissemination 
+# Clean Architecture
+All of projects that help use clean architecture in projects 
