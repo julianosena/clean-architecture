@@ -35,14 +35,14 @@ module.exports = class extends Generator {
         var projectRootPath = this.project.rootPath
         var projectLanguage = this.project.language.toLowerCase()
         var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
-        return projectRootPath + "/src/main/" + projectLanguage + "/" + projectRootPackage + "/domain/"
+        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/domain/"
     }
 
     getProjectGatewayPath() {
         var projectRootPath = this.project.rootPath
         var projectLanguage = this.project.language.toLowerCase()
         var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
-        return projectRootPath + "/src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/"
+        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/"
     }
 
     getProjectGatewayImplementationPath() {
@@ -50,28 +50,28 @@ module.exports = class extends Generator {
         var projectLanguage = this.project.language.toLowerCase()
         var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
         var projectCrudDatabase = this.project.database.toLowerCase();
-        return projectRootPath + "/src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/database/" + projectCrudDatabase + "/"
+        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/database/" + projectCrudDatabase + "/"
     }
 
     generateGatewayExceptions() {
-        const projectGatewayPath = this.getProjectGatewayPath()
-        const gatewayPackage = this.project.pack + ".gateway.exception"
+        const projectGatewayExceptionPath = this.getProjectGatewayPath() + "/exception"
+        const rootPackage = this.project.pack
         const operations = ["Create", "Delete", "Find", "Update"]
 
         operations.forEach(operation => {
             this.fs.copyTpl(
                 this.templatePath('gateway/exception/GatewayException.java'),
-                this.destinationPath(projectGatewayPath + operation + "GatewayException.java"),
-                { pack : gatewayPackage, operationName: operation }
+                this.destinationPath(projectGatewayExceptionPath + "/" + operation + "GatewayException.java"),
+                { pack : rootPackage, operationName: operation }
             );
         })
     }
 
     generateGatewayInterfaces() {
+        const projectDomainPath = this.getProjectDomainPath()
         fs.readdir(projectDomainPath, (e, files) => {
             const projectGatewayPath = this.getProjectGatewayPath()
-            var projectDomainPath = this.getProjectDomainPath()
-            const gatewayPackage = this.project.pack + ".gateway"
+            const rootPackage = this.project.pack
             const operations = ["Create", "Delete", "Find", "Update"]
 
             files.forEach(file => {
@@ -80,7 +80,7 @@ module.exports = class extends Generator {
                     this.fs.copyTpl(
                         this.templatePath('gateway/GatewayInterface.java'),
                         this.destinationPath(projectGatewayPath + operation + domainClassName + "Gateway.java"),
-                        { pack : gatewayPackage, operationName: operation, domainClassName: domainClassName }
+                        { pack : rootPackage, operationName: operation, domainClassName: domainClassName }
                     );
                 })
             })

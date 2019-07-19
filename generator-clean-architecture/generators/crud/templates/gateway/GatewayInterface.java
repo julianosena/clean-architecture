@@ -1,4 +1,7 @@
-package <%= pack %>;
+package <%= pack %>.gateway;
+
+import <%= pack %>.domain.<%= domainClassName %>;
+import <%= pack %>.exception.<%= operationName %>GatewayException;
 
 public interface <%= operationName %><%= domainClassName %>Gateway {
 
