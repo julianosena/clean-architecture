@@ -87,9 +87,30 @@ module.exports = class extends Generator {
         })
     }
 
+    generateGatewayImplementations() {
+        const projectDomainPath = this.getProjectDomainPath()
+        fs.readdir(projectDomainPath, (e, files) => {
+            const projectGatewayPath = this.getProjectGatewayPath()
+            const rootPackage = this.project.pack
+            const operations = ["Create", "Delete", "Find", "Update"]
+
+            files.forEach(file => {
+                const domainClassName = file.replace(".java", "")
+                operations.forEach(operation => {
+                    this.fs.copyTpl(
+                        this.templatePath('gateway/GatewayInterface.java'),
+                        this.destinationPath(projectGatewayPath + operation + domainClassName + "Gateway.java"),
+                        { pack : rootPackage, operationName: operation, domainClassName: domainClassName }
+                    );
+                })
+            })
+        })
+    }
+
     writing() {
         this.generateGatewayExceptions()
         this.generateGatewayInterfaces()
+        this.generateGatewayImplementations()
     }
 
 }
