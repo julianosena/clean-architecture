@@ -1,15 +1,15 @@
-package <%= gatewayPackage %>.<%= tecnologyType %>.<%= tecnologyValue %>;
+package <%= gatewayImplementationPackage %>;
 
 import <%= domainPackage %>.domain.<%= domainClassName %>;
 import <%= gatewayPackage %>.exception.<%= operationName %>GatewayException;
 import <%= gatewayPackage %>.<%= operationName %><%= domainClassName %>Gateway;
 
-public class Create<%= domainClassName %><%= tecnologyType %>Gateway implements <%= operationName %><%= domainClassName %>Gateway {
+public class Create<%= domainClassName %><%= gatewayImplementationTecnology %>Gateway implements <%= operationName %><%= domainClassName %>Gateway {
 
     private <%= domainClassName %>Repository repository;
 
     @Autowired
-    public class <%= operationName %><%= domainClassName %><%= tecnologyValue %>Gateway(<%= domainClassName %>Repository repository){
+    public class <%= operationName %><%= domainClassName %><%= gatewayImplementationTecnology %>Gateway(<%= domainClassName %>Repository repository){
         this.repository = repository;
     }
 

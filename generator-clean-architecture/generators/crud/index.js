@@ -27,23 +27,6 @@ module.exports = class extends Generator {
         }
     };
 
-    async projectProgrammingLanguagePrompting() {
-        this.project = Object.assign(await this.prompt([
-            {
-                type: "list",
-                name: "programmingLanguage",
-                message: "What is project programming language?",
-                choices : [
-                    {
-                        name : "Java",
-                        value : "java",
-                        checked : true
-                    }
-                ]
-            }
-        ]), this.project)
-    };
-
     async projectGatewayRootPath() {
         this.project = Object.assign(await this.prompt([
             {
@@ -64,6 +47,50 @@ module.exports = class extends Generator {
             this.log.error("Invalid project gateway root path");
             process.exit();
         }
+    };
+
+    async projectProgrammingLanguagePrompting() {
+        this.project = Object.assign(await this.prompt([
+            {
+                type: "list",
+                name: "programmingLanguage",
+                message: "What is project programming language?",
+                choices : [
+                    {
+                        name : "Java",
+                        value : "java",
+                        checked : true
+                    }
+                ]
+            }
+        ]), this.project)
+    };
+
+    async projectGatewayImplementationTecnology() {
+        this.project = Object.assign(await this.prompt([
+            {
+                type: "list",
+                name: "gatewayImplementationTecnology",
+                message: "What is gateway implementation tecnology",
+                choices : [
+                    {
+                        name : "Postgres",
+                        value : "Postgres",
+                        checked : true
+                    },
+                    {
+                        name : "MongoDB",
+                        value : "MongoDB",
+                        checked : false
+                    },
+                    {
+                        name : "Feign",
+                        value : "Feign",
+                        checked : false
+                    },
+                ]
+            }
+        ]), this.project)
     };
 
     config(){
@@ -119,22 +146,24 @@ module.exports = class extends Generator {
     }
 
     generateGatewayImplementations() {
-        const projectDomainPath = this.project.domainRootPath
+        const projectDomainPath = this.project.domainRootPath;
         fs.readdir(projectDomainPath, (e, files) => {
             const projectGatewayPath = this.project.gatewayRootPath;
             const projectGatewayPackage = this.project.getProjectGatewayPackage();
+            const projectGatewayImplementationTecnology = this.project.gatewayImplementationTecnology;
+            const projectGatewayImplementationPackage = projectGatewayPackage + "." + projectGatewayImplementationTecnology.toLowerCase();
             const projectDomainPackage = this.project.getProjectDomainPackage();
+
             const operations = ["Create", "Delete", "Find", "Update"]
 
             files.forEach(file => {
                 const domainClassName = file.replace(".java", "")
                 operations.forEach(operation => {
-                    console.log(projectGatewayPath);
-
+                    console.log(operation);
                     this.fs.copyTpl(
-                        this.templatePath('gateway/GatewayInterface.java'),
-                        this.destinationPath(projectGatewayPath + "/" + operation + domainClassName + "Gateway.java"),
-                        { gatewayPackage : projectGatewayPackage, domainPackage : projectDomainPackage, operationName: operation, domainClassName: domainClassName }
+                        this.templatePath('gateway/GatewayImplementation.java'),
+                        this.destinationPath(projectGatewayPath + "/" + projectGatewayImplementationTecnology.toLowerCase() + "/" + operation + domainClassName + projectGatewayImplementationTecnology + "GatewayImpl.java"),
+                        { gatewayPackage : projectGatewayPackage, gatewayImplementationPackage : projectGatewayImplementationPackage, domainPackage : projectDomainPackage, operationName: operation, gatewayImplementationTecnology: projectGatewayImplementationTecnology, domainClassName: domainClassName }
                     );
                 })
             })
