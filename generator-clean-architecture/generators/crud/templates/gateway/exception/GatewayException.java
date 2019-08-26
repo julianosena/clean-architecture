@@ -1,4 +1,4 @@
-package <%= pack %>.gateway.exception;
+package <%= gatewayPackage %>.exception;
 
 public class <%= operationName %>GatewayException extends Exception {
 

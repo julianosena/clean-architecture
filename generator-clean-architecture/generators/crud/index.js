@@ -5,73 +5,104 @@ const reader = new JavaClassFileReader()
 
 module.exports = class extends Generator {
 
-    async prompting() {
-        this.project = await this.prompt([
+    async projectDomainRootPath() {
+        this.project = Object.assign(await this.prompt([
             {
                 type: "input",
-                name: "rootPath",
-                message: "What is your root path project?"
-            },
-            {
-                type : "input",
-                name : "language",
-                message : "What is language project?"
-            },
-            {
-                type : "input",
-                name : "pack",
-                message : "What is your root package project?"
-            },
-            {
-                type : "input",
-                name : "database",
-                message : "What the database are you using to crud?",
-                choices : ["Postgres", "MongoDB", "MySQL"]
-            },
-        ]);
+                name: "domainRootPath",
+                message: "What is project domain root path"
+            }
+        ]), this.project)
     };
 
-    getProjectDomainPath() {
-        var projectRootPath = this.project.rootPath
-        var projectLanguage = this.project.language.toLowerCase()
-        var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
-        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/domain/"
-    }
+    checkProjectDomainRootPathIsValid(){
+        if(!this.project.domainRootPath) {
+            this.log.error("Invalid project domain root path");
+            process.exit();
+        }
 
-    getProjectGatewayPath() {
-        var projectRootPath = this.project.rootPath
-        var projectLanguage = this.project.language.toLowerCase()
-        var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
-        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/"
-    }
+        if(!fs.existsSync(this.project.domainRootPath)) {
+            this.log.error("Invalid project domain root path");
+            process.exit();
+        }
+    };
 
-    getProjectGatewayImplementationPath() {
-        var projectRootPath = this.project.rootPath
-        var projectLanguage = this.project.language.toLowerCase()
-        var projectRootPackage = this.project.pack.toLowerCase().replace(/\./g, "/")
-        var projectCrudDatabase = this.project.database.toLowerCase();
-        return projectRootPath + "src/main/" + projectLanguage + "/" + projectRootPackage + "/gateway/database/" + projectCrudDatabase + "/"
+    async projectProgrammingLanguagePrompting() {
+        this.project = Object.assign(await this.prompt([
+            {
+                type: "list",
+                name: "programmingLanguage",
+                message: "What is project programming language?",
+                choices : [
+                    {
+                        name : "Java",
+                        value : "java",
+                        checked : true
+                    }
+                ]
+            }
+        ]), this.project)
+    };
+
+    async projectGatewayRootPath() {
+        this.project = Object.assign(await this.prompt([
+            {
+                type: "input",
+                name: "gatewayRootPath",
+                message: "What is project gateway root path"
+            }
+        ]), this.project)
+    };
+
+    checkProjectGatewayRootPathIsValid(){
+        if(!this.project.gatewayRootPath) {
+            this.log.error("Invalid project gateway root path");
+            process.exit();
+        }
+
+        if(!fs.existsSync(this.project.gatewayRootPath)) {
+            this.log.error("Invalid project gateway root path");
+            process.exit();
+        }
+    };
+
+    config(){
+        this.project.getProjectDomainPackage = function(){
+            var projectDomainPackage = this.domainRootPath.replace(/[-\/\w]+\/java\//g,"");
+            projectDomainPackage = projectDomainPackage.replace(/[\/]/g, ".");
+            return projectDomainPackage;
+        }
+
+        this.project.getProjectGatewayPackage = function(){
+            var projectGatewayPackage = this.gatewayRootPath.replace(/[-\/\w]+\/java\//g,"");
+            projectGatewayPackage = projectGatewayPackage.replace(/[\/]/g, ".");
+            return projectGatewayPackage;
+        }
     }
 
     generateGatewayExceptions() {
-        const projectGatewayExceptionPath = this.getProjectGatewayPath() + "/exception"
-        const rootPackage = this.project.pack
+        console.log("Generating exceptions to gateway layer");
+        const projectGatewayExceptionPath = this.project.gatewayRootPath + "/exception"
+        const projectGatewayPackage = this.project.getProjectGatewayPackage();
         const operations = ["Create", "Delete", "Find", "Update"]
 
         operations.forEach(operation => {
             this.fs.copyTpl(
                 this.templatePath('gateway/exception/GatewayException.java'),
                 this.destinationPath(projectGatewayExceptionPath + "/" + operation + "GatewayException.java"),
-                { pack : rootPackage, operationName: operation }
+                { gatewayPackage : projectGatewayPackage, operationName: operation }
             );
-        })
+        });
+
+        console.log("Ending generating exceptions to gateway layer");
     }
 
     generateGatewayInterfaces() {
-        const projectDomainPath = this.getProjectDomainPath()
+        const projectDomainPath = this.project.domainRootPath
         fs.readdir(projectDomainPath, (e, files) => {
-            const projectGatewayPath = this.getProjectGatewayPath()
-            const rootPackage = this.project.pack
+            const projectGatewayPath = this.project.gatewayRootPath;
+            const projectGatewayPackage = this.project.getProjectGatewayPackage();
+            const projectDomainPackage = this.project.getProjectDomainPackage();
             const operations = ["Create", "Delete", "Find", "Update"]
 
             files.forEach(file => {
@@ -79,8 +110,8 @@ module.exports = class extends Generator {
                 operations.forEach(operation => {
                     this.fs.copyTpl(
                         this.templatePath('gateway/GatewayInterface.java'),
-                        this.destinationPath(projectGatewayPath + operation + domainClassName + "Gateway.java"),
-                        { pack : rootPackage, operationName: operation, domainClassName: domainClassName }
+                        this.destinationPath(projectGatewayPath + "/" + operation + domainClassName + "Gateway.java"),
+                        { gatewayPackage : projectGatewayPackage, domainPackage : projectDomainPackage, operationName: operation, domainClassName: domainClassName }
                     );
                 })
             })
@@ -88,29 +119,25 @@ module.exports = class extends Generator {
     }
 
     generateGatewayImplementations() {
-        const projectDomainPath = this.getProjectDomainPath()
+        const projectDomainPath = this.project.domainRootPath
         fs.readdir(projectDomainPath, (e, files) => {
-            const projectGatewayPath = this.getProjectGatewayPath()
-            const rootPackage = this.project.pack
+            const projectGatewayPath = this.project.gatewayRootPath;
+            const projectGatewayPackage = this.project.getProjectGatewayPackage();
+            const projectDomainPackage = this.project.getProjectDomainPackage();
             const operations = ["Create", "Delete", "Find", "Update"]
 
             files.forEach(file => {
                 const domainClassName = file.replace(".java", "")
                 operations.forEach(operation => {
+                    console.log(projectGatewayPath);
+
                     this.fs.copyTpl(
                         this.templatePath('gateway/GatewayInterface.java'),
-                        this.destinationPath(projectGatewayPath + operation + domainClassName + "Gateway.java"),
-                        { pack : rootPackage, operationName: operation, domainClassName: domainClassName }
+                        this.destinationPath(projectGatewayPath + "/" + operation + domainClassName + "Gateway.java"),
+                        { gatewayPackage : projectGatewayPackage, domainPackage : projectDomainPackage, operationName: operation, domainClassName: domainClassName }
                     );
                 })
             })
         })
     }
-
-    writing() {
-        this.generateGatewayExceptions()
-        this.generateGatewayInterfaces()
-        this.generateGatewayImplementations()
-    }
-
 }

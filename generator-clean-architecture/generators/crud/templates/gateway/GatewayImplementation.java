@@ -1,8 +1,8 @@
-package <%= pack %>.gateway.<%= tecnologyType %>.<%= tecnologyValue %>;
+package <%= gatewayPackage %>.<%= tecnologyType %>.<%= tecnologyValue %>;
 
-import <%= pack %>.domain.<%= domainClassName %>;
-import <%= pack %>.exception.<%= operationName %>GatewayException;
-import <%= pack %>.gateway.<%= operationName %><%= domainClassName %>Gateway;
+import <%= domainPackage %>.domain.<%= domainClassName %>;
+import <%= gatewayPackage %>.exception.<%= operationName %>GatewayException;
+import <%= gatewayPackage %>.<%= operationName %><%= domainClassName %>Gateway;
 
 public class Create<%= domainClassName %><%= tecnologyType %>Gateway implements <%= operationName %><%= domainClassName %>Gateway {
 
