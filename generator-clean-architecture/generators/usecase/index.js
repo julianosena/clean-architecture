@@ -88,9 +88,8 @@ module.exports = class extends Generator {
     const projectDomainPath = this.project.domainRootPath;
     fs.readdir(projectDomainPath, (e, files) => {
         const projectUseCasePath = this.project.useCaseRootPath;
-        const projectRootPackage = this.project.projectRootPackage;
-        const projectDomainPackage = this.project.getProjectDomainPackage();
-
+        const projectRootPackage = this.project.rootPackage;
+        
         const operations = ["Create", "Delete", "Find", "Update"]
 
         files.forEach(file => {
@@ -100,7 +99,7 @@ module.exports = class extends Generator {
                 this.fs.copyTpl(
                     this.templatePath('UseCase.java'),
                     this.destinationPath(projectUseCasePath + "/" + operation + domainClassName + "UseCase.java"),
-                    { rootPackage : projectRootPackage, domainPackage : projectDomainPackage, operationName: operation, domainClassName: domainClassName }
+                    { rootPackage : projectRootPackage, operationName: operation, domainClassName: domainClassName }
                 );
             })
         })
