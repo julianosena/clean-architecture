@@ -4,7 +4,8 @@
   "description": "Clean Architecture crud generator",
   "main": "index.js",
   "files": [
-    "crud"
+    "crud",
+    "usecase"
   ],
   "keywords": [
     "yeoman-generator"
